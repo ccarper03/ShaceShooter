@@ -313,8 +313,8 @@ GameObject:
   - component: {fileID: 1265542572}
   - component: {fileID: 1265542571}
   m_Layer: 0
-  m_Name: Cube
-  m_TagString: Untagged
+  m_Name: Player
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -341,7 +341,7 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1265542570}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
@@ -426,11 +426,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8759286235201785685, guid: 8409d2d82044fcb4cb44038e8cc2d058, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2.53
+      value: 2.61
       objectReference: {fileID: 0}
     - target: {fileID: 8759286235201785685, guid: 8409d2d82044fcb4cb44038e8cc2d058, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.11
+      value: 2.74
       objectReference: {fileID: 0}
     - target: {fileID: 8759286235201785685, guid: 8409d2d82044fcb4cb44038e8cc2d058, type: 3}
       propertyPath: m_LocalPosition.z

@@ -1,11 +1,12 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
     [SerializeField]
     private float _speed = 5f;
+    [SerializeField]
+    private float _speedMultiplyer = 2;
     [SerializeField]
     private GameObject _laserPrefab;
     [SerializeField]
@@ -19,7 +20,14 @@ public class Player : MonoBehaviour
     private SpawnManager _spawnManager;
     [SerializeField]
     private bool _isTripleShotActive = false;
+    [SerializeField]
+    private bool _isSpeedPowerupActive = false;
+    [SerializeField]
+    private bool _isShieldPowerupActive = false;
     private float _tripleShotCoolDown = 5;
+    private float _speedPowerupCoolDown = 5;
+    private float _shieldPowerupCoolDown = 5;
+
     private IEnumerator coroutine;
 
     void Start()
@@ -59,11 +67,10 @@ public class Player : MonoBehaviour
     {
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
-        Vector3 direction = new Vector3(horizontalInput, verticalInput, 0);
+        Vector3 _direction = new Vector3(horizontalInput, verticalInput, 0);
 
-        transform.Translate(direction * _speed * Time.deltaTime);
+        transform.Translate(_direction * _speed * Time.deltaTime);
 
-        // Constraint top and bottom
         transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, -4f, 0f), 0);
 
         if (transform.position.x <= -11.30f)
@@ -87,21 +94,36 @@ public class Player : MonoBehaviour
 
     public void TripleShotActive()
     {
-        //tripleshot active becomes true
         _isTripleShotActive = true;
-        Debug.Log("turnt true ");
-        coroutine = TripleShotPowerDownRoutine();
-        // start the powerdown coroutine for triple shot
-        StartCoroutine(coroutine);
+        StartCoroutine(TripleShotPowerDownRoutine());
+    }
+    public void SpeedPowerupActive()
+    {
+        _isSpeedPowerupActive = true;
+        _speed *= _speedMultiplyer;
+        StartCoroutine(SpeedPowerDownRoutine());
+    }
+    public void ShieldPowerupActive()
+    {
+        _isShieldPowerupActive = true;
+        StartCoroutine(ShieldPowerDownRoutine());
     }
 
-    // ienumerator tripleshotpowerdownRoutine
-    // wait 5 seconds
-    // set tripleshot to false
     private IEnumerator TripleShotPowerDownRoutine()
     {
         yield return new WaitForSeconds(_tripleShotCoolDown);
         _isTripleShotActive = false;
     }
- 
+    private IEnumerator SpeedPowerDownRoutine()
+    {
+        yield return new WaitForSeconds(_speedPowerupCoolDown);
+        _isSpeedPowerupActive = false;
+        _speed /= _speedMultiplyer;
+    }
+    private IEnumerator ShieldPowerDownRoutine()
+    {
+
+        yield return new WaitForSeconds(_shieldPowerupCoolDown);
+        _isShieldPowerupActive = false;
+    }
 }

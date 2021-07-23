@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
@@ -8,25 +7,18 @@ public class SpawnManager : MonoBehaviour
     private GameObject _enemyPrefab;
     [SerializeField]
     private GameObject _enemyContainer;
-    private IEnumerator coroutine;
+    [SerializeField]
+    private GameObject[] _powerUps;
     private bool _stopSpawning = false;
-    // Start is called before the first frame update
+
     void Start()
     {
-        coroutine = SpawnRoutine(5.0f);
-        StartCoroutine(coroutine);
+        StartCoroutine(SpawnEnemyRoutine(5.0f));
+        StartCoroutine(SpawnPowerupRoutine());
     }
 
-    // Update is called once per frame
-    void Update()
+    private IEnumerator SpawnEnemyRoutine(float waitTime)
     {
-        
-    }
-
-    // spawn game objects every 5 seconds
-    private IEnumerator SpawnRoutine(float waitTime)
-    {
-        // while loop 
         while (_stopSpawning == false)
         {
             Vector3 posToSpawn = new Vector3(Random.Range(-9.55f, 9.55f),7,0);
@@ -35,6 +27,17 @@ public class SpawnManager : MonoBehaviour
             yield return new WaitForSeconds(waitTime);
         }
     }
+    private IEnumerator SpawnPowerupRoutine()
+    {
+        while (_stopSpawning == false)
+        {
+            Vector3 posToSpawn = new Vector3(Random.Range(-9.55f, 9.55f), 7, 0);
+            int randomPowerUp = Random.Range(0,3);
+            Instantiate(_powerUps[randomPowerUp], posToSpawn, Quaternion.identity);
+            yield return new WaitForSeconds(Random.Range(3,8));
+        }
+    }
+
 
     public void OnPlayerDeath()
     {

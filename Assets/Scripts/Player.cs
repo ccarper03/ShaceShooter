@@ -17,18 +17,28 @@ public class Player : MonoBehaviour
     private float _canFire = -.5f;
     [SerializeField]
     private int _lives = 3;
+    [SerializeField]
+    private int _score;
+    [SerializeField]
+    private GameObject _shieldVisualizer;
     private SpawnManager _spawnManager;
-    [SerializeField]
+    private UIManager _uiManager;
     private bool _isTripleShotActive = false;
-    [SerializeField]
     private bool _isSpeedPowerupActive = false;
-    [SerializeField]
     private bool _isShieldPowerupActive = false;
     private float _tripleShotCoolDown = 5;
     private float _speedPowerupCoolDown = 5;
-    private float _shieldPowerupCoolDown = 5;
+    [SerializeField]
+    private GameObject _visualDamageRightEngine;
+    [SerializeField]
+    private GameObject _visualDamageLeftEngine;
+    [SerializeField]
+    private AudioClip _laserSoundClip;
+    [SerializeField]
+    private AudioClip _powerupSoundClip;
+    private AudioSource _audioSource;
 
-    private IEnumerator coroutine;
+
 
     void Start()
     {
@@ -36,7 +46,21 @@ public class Player : MonoBehaviour
         _spawnManager = GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();
         if (_spawnManager == null)
         {
-            Debug.LogError("The Spawn Manager is Null");
+            Debug.LogError("The SpawnManager is Null");
+        }
+        _uiManager = GameObject.Find("UI_Manager").GetComponent<UIManager>();
+        if (_uiManager == null)
+        {
+            Debug.LogError("The UIManager is Null");
+        }
+        _shieldVisualizer.SetActive(false);
+
+        _visualDamageRightEngine.SetActive(false);
+        _visualDamageLeftEngine.SetActive(false);
+        _audioSource = GetComponent<AudioSource>();
+        if (_audioSource == null)
+        {
+            Debug.LogError("AudioSource on the player is Null");
         }
     }
 
@@ -61,6 +85,7 @@ public class Player : MonoBehaviour
         {
             Instantiate(_laserPrefab, transform.position + new Vector3(0, 1.05f, 0), Quaternion.identity);
         }
+        _audioSource.PlayOneShot(_laserSoundClip);
     }
 
     void CalculateMovement()
@@ -84,7 +109,24 @@ public class Player : MonoBehaviour
     }
     public void Damage()
     {
+        if (_isShieldPowerupActive == true)
+        {
+            UseShield();
+            return;
+        }
+
         _lives--;
+
+        _uiManager.UpdateLives(_lives);
+        if (_lives == 2)
+        {
+            _visualDamageRightEngine.SetActive(true);
+        }
+        if (_lives == 1)
+        {
+            _visualDamageLeftEngine.SetActive(true);
+        }
+
         if (_lives < 1)
         {
             _spawnManager.OnPlayerDeath();
@@ -95,18 +137,21 @@ public class Player : MonoBehaviour
     public void TripleShotActive()
     {
         _isTripleShotActive = true;
+        _audioSource.PlayOneShot(_powerupSoundClip);
         StartCoroutine(TripleShotPowerDownRoutine());
     }
     public void SpeedPowerupActive()
     {
         _isSpeedPowerupActive = true;
+        _audioSource.PlayOneShot(_powerupSoundClip);
         _speed *= _speedMultiplyer;
         StartCoroutine(SpeedPowerDownRoutine());
     }
     public void ShieldPowerupActive()
     {
         _isShieldPowerupActive = true;
-        StartCoroutine(ShieldPowerDownRoutine());
+        _audioSource.PlayOneShot(_powerupSoundClip);
+        _shieldVisualizer.SetActive(true);
     }
 
     private IEnumerator TripleShotPowerDownRoutine()
@@ -120,10 +165,15 @@ public class Player : MonoBehaviour
         _isSpeedPowerupActive = false;
         _speed /= _speedMultiplyer;
     }
-    private IEnumerator ShieldPowerDownRoutine()
+    private void UseShield()
     {
+       _isShieldPowerupActive = false;
+        _shieldVisualizer.SetActive(false);
+    }
 
-        yield return new WaitForSeconds(_shieldPowerupCoolDown);
-        _isShieldPowerupActive = false;
+    public void AddToScore(int points)
+    {
+        _score += points;
+        _uiManager.UpdateScore(_score);
     }
 }

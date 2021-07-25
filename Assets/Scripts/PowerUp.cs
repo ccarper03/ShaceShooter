@@ -4,7 +4,8 @@ public class PowerUp : MonoBehaviour
     [SerializeField]
     private float _speed = 3;
     [SerializeField]
-    private int powerupID;// 0 = tripleshot 1 = speed 2 = sheilds
+    private int powerupID;// 0 = tripleshot 1 = speed 2 = shields
+
     void Update()
     {
         transform.Translate(Vector3.down * _speed * Time.deltaTime);
@@ -35,7 +36,7 @@ public class PowerUp : MonoBehaviour
                         player.ShieldPowerupActive();
                         break;
                     default:
-                        Debug.Log("Default Value");
+                        Debug.Log("Default pickup");
                         break;
                 }
 

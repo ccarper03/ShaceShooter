@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityStandardAssets.CrossPlatformInput;
 
 public class Player : MonoBehaviour
 {
@@ -24,7 +25,7 @@ public class Player : MonoBehaviour
     private SpawnManager _spawnManager;
     private UIManager _uiManager;
     private bool _isTripleShotActive = false;
-    private bool _isSpeedPowerupActive = false;
+    private protected bool _isSpeedPowerupActive = false;
     private bool _isShieldPowerupActive = false;
     private float _tripleShotCoolDown = 5;
     private float _speedPowerupCoolDown = 5;
@@ -67,10 +68,17 @@ public class Player : MonoBehaviour
     void Update()
     {
         CalculateMovement();
+#if UNITY_ANDROID  
+        if (CrossPlatformInputManager.GetButtonDown("Fire") && Time.time > _canFire)
+        {
+            FireLaser();
+        }
+#else   
         if (Input.GetKeyDown(KeyCode.Space) && Time.time > _canFire)
         {
             FireLaser();
         }
+#endif
     }
 
     private void FireLaser()
@@ -90,8 +98,8 @@ public class Player : MonoBehaviour
 
     void CalculateMovement()
     {
-        float horizontalInput = Input.GetAxis("Horizontal");
-        float verticalInput = Input.GetAxis("Vertical");
+        float horizontalInput = CrossPlatformInputManager.GetAxis("Horizontal");
+        float verticalInput = CrossPlatformInputManager.GetAxis("Vertical");
         Vector3 _direction = new Vector3(horizontalInput, verticalInput, 0);
 
         transform.Translate(_direction * _speed * Time.deltaTime);

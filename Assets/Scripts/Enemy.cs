@@ -6,8 +6,10 @@ public class Enemy : MonoBehaviour
 {
     [SerializeField]
     private float _speed = 4f;
-    private Player _player;
+    private Player _player1;
+    private Player _player2;
     private Animator _animator;
+    private GameManager _gameManager;
     [SerializeField]
     private GameObject _laserPrefab;
     [SerializeField]
@@ -18,15 +20,37 @@ public class Enemy : MonoBehaviour
 
     private void Start()
     {
-        _player = GameObject.Find("Player").GetComponent<Player>();
-        if (_player == null)
+        _gameManager = GameObject.Find("Game_Manager").GetComponent<GameManager>();
+        if (_gameManager == null)
         {
-            Debug.Log("Enemy::Player is Null");
+            Debug.LogError("The GameManager is Null");
         }
+        if (_gameManager._isCoopMode == true)
+        {
+            _player1 = GameObject.Find("Player_1").GetComponent<Player>();
+            if (_player1 == null)
+            {
+                Debug.LogError("Enemy::Player is Null");
+            }
+            _player2 = GameObject.Find("Player_2").GetComponent<Player>();
+            if (_player1 == null)
+            {
+                Debug.LogError("Enemy::Player is Null");
+            }
+        }
+        else
+        {
+            _player1 = GameObject.Find("Player_1").GetComponent<Player>();
+            if (_player1 == null)
+            {
+                Debug.LogError("Enemy::Player is Null");
+            }
+        }
+        
         _animator = GetComponent<Animator>();
         if (_animator == null)
         {
-            Debug.Log("Enemy::Animator is Null");
+            Debug.LogError("Enemy::Animator is Null");
         }
         _audioSource = GetComponent<AudioSource>();
         if (_audioSource == null)
@@ -53,7 +77,7 @@ public class Enemy : MonoBehaviour
         {
             _fireRate = Random.Range(3f, 7f);
             _canFire = Time.time + _fireRate;
-            GameObject enemyLaser = Instantiate(_laserPrefab, transform.position, Quaternion.identity);
+            GameObject enemyLaser = Instantiate(_laserPrefab, (transform.position + new Vector3(0,-.5f,0)), Quaternion.identity);
             Laser[] lasers = enemyLaser.GetComponentsInChildren<Laser>();
             for (int i = 0; i < lasers.Length; i++)
             {
@@ -66,11 +90,43 @@ public class Enemy : MonoBehaviour
     {
         if (other.tag == "Player")
         {
-            Player player = other.transform.GetComponent<Player>();
-            if (player != null)
+            if (_gameManager._isCoopMode == true)
             {
-                player.Damage();
+                Player p1 = other.transform.GetComponent<Player>();
+                Player p2 = other.transform.GetComponent<Player>();
+                if (p1 == null || p2 == null)
+                {
+                    Debug.LogError("players are null");
+                    return;
+                }
+                if (p1.isPlayerOne == true && p1 != null)
+                {
+                    p1.Damage();
+                }
+                else
+                {
+
+                    p2.Damage();
+                }
             }
+            else
+            {
+                Player p1 = other.transform.GetComponent<Player>();
+                if (p1 == null)
+                {
+                    Debug.LogError("player is null");
+                    return;
+                }
+                if (p1.isPlayerOne == true && p1 != null)
+                {
+                    p1.Damage();
+                }
+            }
+            
+            
+            
+            
+            
             _audioSource.Play();
             _speed = 0;
             _animator.SetTrigger("OnEnemyDeath");
@@ -80,9 +136,13 @@ public class Enemy : MonoBehaviour
         if (other.tag == "Laser")
         {
             Destroy(other.gameObject);
-            if (_player != null)
+            if (_player1 != null)
             {
-                _player.AddToScore(10);
+                _player1.AddToScore(10);
+            }
+            if (_player2 != null)
+            {
+                _player2.AddToScore(10);
             }
             _audioSource.Play();
             _speed = 0; 

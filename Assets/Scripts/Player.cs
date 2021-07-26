@@ -23,6 +23,7 @@ public class Player : MonoBehaviour
     [SerializeField]
     private GameObject _shieldVisualizer;
     private SpawnManager _spawnManager;
+    private GameManager _gameManager;
     private UIManager _uiManager;
     private bool _isTripleShotActive = false;
     private protected bool _isSpeedPowerupActive = false;
@@ -38,22 +39,35 @@ public class Player : MonoBehaviour
     [SerializeField]
     private AudioClip _powerupSoundClip;
     private AudioSource _audioSource;
-
+    public bool isPlayerOne = false;
+    public bool isPlayerTwo = false;
+    public int highScore = 0;
+    string highScoreKey = "HighScore";
 
 
     void Start()
     {
-        transform.position = new Vector3(0,0,0);
+        
         _spawnManager = GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();
         if (_spawnManager == null)
         {
             Debug.LogError("The SpawnManager is Null");
+        }
+        _gameManager = GameObject.Find("Game_Manager").GetComponent<GameManager>();
+        if (_gameManager == null)
+        {
+            Debug.LogError("The GameManager is Null");
         }
         _uiManager = GameObject.Find("UI_Manager").GetComponent<UIManager>();
         if (_uiManager == null)
         {
             Debug.LogError("The UIManager is Null");
         }
+        if (_gameManager._isCoopMode == false)
+        {
+            transform.position = new Vector3(0, 0, 0);
+        }
+        
         _shieldVisualizer.SetActive(false);
 
         _visualDamageRightEngine.SetActive(false);
@@ -67,24 +81,42 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        CalculateMovement();
-#if UNITY_ANDROID  
+        if (isPlayerTwo)
+        {
+            CalculatePlayerTwoMovement();
+        }
+        else
+        {
+            CalculatePlayerOneMovement();
+        }
+        if (Input.GetKeyDown(KeyCode.Space) && Time.time > _canFire && isPlayerOne == true || Input.GetKeyDown(KeyCode.RightControl) && Time.time > _canFire && isPlayerTwo == true)
+        {
+            FireLaser();
+        }
+
+        //if (_score > highScore)
+        //{
+        //    int temp = highScore;
+        //    PlayerPrefs.SetInt(highScoreKey, _score);
+        //    _score = temp;
+        //    _uiManager.UpdateHighscore(_score);
+        //}
+
+
+#if UNITY_ANDROID
         if (CrossPlatformInputManager.GetButtonDown("Fire") && Time.time > _canFire)
         {
             FireLaser();
         }
-#else   
-        if (Input.GetKeyDown(KeyCode.Space) && Time.time > _canFire)
-        {
-            FireLaser();
-        }
+#else
+
+
 #endif
     }
 
     private void FireLaser()
     {
-        _canFire = Time.time + _fireRate;
-        
+        _canFire = Time.time + _fireRate; 
         if (_isTripleShotActive)
         {
             Instantiate(_trippleLaserPrefab, transform.position , Quaternion.identity);
@@ -96,11 +128,32 @@ public class Player : MonoBehaviour
         _audioSource.PlayOneShot(_laserSoundClip);
     }
 
-    void CalculateMovement()
+    void CalculatePlayerOneMovement()
     {
-        float horizontalInput = CrossPlatformInputManager.GetAxis("Horizontal");
-        float verticalInput = CrossPlatformInputManager.GetAxis("Vertical");
-        Vector3 _direction = new Vector3(horizontalInput, verticalInput, 0);
+        
+        float horizontalInputP1 = CrossPlatformInputManager.GetAxis("Horizontal");
+        float verticalInputP1 = CrossPlatformInputManager.GetAxis("Vertical");
+        Vector3 _direction = new Vector3(horizontalInputP1, verticalInputP1, 0);
+
+        transform.Translate(_direction * _speed * Time.deltaTime);
+
+        transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y, -4f, 0f), 0);
+
+        if (transform.position.x <= -11.30f)
+        {
+            transform.position = new Vector3(11.30f, transform.position.y, 0);
+        }
+        else if (transform.position.x >= 11.30f)
+        {
+            transform.position = new Vector3(-11.30f, transform.position.y, 0);
+        }
+    }
+    void CalculatePlayerTwoMovement()
+    {
+
+        float horizontalInputP2 = CrossPlatformInputManager.GetAxis("HorizontalP2");
+        float verticalInputP2 = CrossPlatformInputManager.GetAxis("VerticalP2");
+        Vector3 _direction = new Vector3(horizontalInputP2, verticalInputP2, 0);
 
         transform.Translate(_direction * _speed * Time.deltaTime);
 
@@ -182,6 +235,16 @@ public class Player : MonoBehaviour
     public void AddToScore(int points)
     {
         _score += points;
+
         _uiManager.UpdateScore(_score);
+    }
+
+    void OnDisable()
+    {
+        if (_score > highScore)
+        {
+            PlayerPrefs.SetInt(highScoreKey, _score);
+            PlayerPrefs.Save();
+        }
     }
 }
